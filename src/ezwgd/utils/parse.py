@@ -1,0 +1,266 @@
+import time
+import pandas as pd
+
+from typing import Iterable, Optional
+from collections import defaultdict
+
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.SeqIO.FastaIO import FastaWriter
+from Bio.SeqRecord import SeqRecord
+
+from rich.console import Console
+from rich.progress import track
+from rich.traceback import install
+
+# Start Rich Engine.
+console = Console()
+install(show_locals=True)
+
+class Genome:
+    def __init__(self, gff3_file_path: str, fna_file_path: str) -> None:
+        console.log("Running .fasta file index and gff pre-parse.")
+        init_start = time.time()
+        with console.status("Initialing..."):
+            self.genome_seq = SeqIO.index(fna_file_path, "fasta")
+
+            # Read and format original GFF3.
+            gff = pd.read_csv(
+                gff3_file_path, sep="\t", header=None, comment="#",
+                names=["chr", "source", "type", "start", "end", "score", "strand", "phase", "attribute",],
+                dtype={"chr":"str", "type":"str", "start":"int", "end":"int", "strand":"str", "phase":"str", "attribute":"str"}
+            )
+
+            gff = gff.sort_values(['chr', 'start'])
+
+            # Filtering useful features, and extract data from original "attribute" columns.
+            gff = gff[gff["type"].isin(["gene", "mRNA", "transcript", "CDS"])].copy()
+            gff["id"] = gff["attribute"].str.extract(r"ID=([^;]+)")
+            gff["parent"] = gff["attribute"].str.extract(r"Parent=([^;]+)")
+
+            # Save for next step.
+            self.gff = gff.reset_index(drop=True)
+
+        console.log(f"Initialization finished in {time.time() - init_start:3f} seconds.")
+
+        self._build_indices()
+
+    def _build_indices(self):
+        console.log("Rebuild GFF3 tree structure.")
+        # Rebuild tree structure (gene->transcript->CDS).
+        gff = self.gff
+        gff_parse_start = time.time()
+        with console.status("Rebuilding..."):
+            # -----------------------------------------------
+            # CDS table (tx -> CDS)
+            cds = gff[gff["type"] == "CDS"].copy()
+            cds = cds.rename(columns={"parent":"tx_id"})
+            cds = cds[cds["tx_id"].notna()]
+
+            # Parent in CDS may be multiple: Parent=a,b,c
+            # explode it
+            cds["tx_id"] = cds["tx_id"].str.split(",")
+            cds = cds.explode("tx_id", ignore_index=True)
+            cds["tx_id"] = cds["tx_id"].astype("str")
+
+            # clean phase
+            cds["phase"] = cds["phase"].replace(".", "0").fillna("0").astype(int)
+
+            # store segments per transcript: list of tuples
+            cds = cds[["tx_id", "chr", "start", "end", "strand", "phase"]].copy()
+
+            # sorting rule: sort by genomic coordinate start
+            cds = cds.sort_values(["chr", "start", "end"]).reset_index(drop=True)
+
+            # -----------------------------------------------
+            # transcript(tx) table (gene -> tx)
+            tx = gff[gff["type"].isin(["mRNA","transcript"])].copy()
+            tx = tx.rename(columns={"id":"tx_id", "parent":"gene_id"})
+            tx = tx[tx["tx_id"].notna() & tx["gene_id"].notna()].loc[:,["gene_id", "tx_id"]]
+
+            # -----------------------------------------------
+            # total_table. like this:
+            #     gene_id    tx_id    chr     start       end strand  phase
+            # 0     gene1     rna1      1    371878    371957      +      0
+            total = pd.merge(tx, cds, how="inner", on="tx_id").sort_values(["chr", "start"]).reset_index(drop=True)
+
+            # gene -> tx dict
+            self._gene_txs = total.groupby("gene_id")["tx_id"].apply(list).to_dict()
+
+            # tx_cds: tx: [(tx, chr, start, end, strand, phase), ......]
+            tx_cds_dict = defaultdict(list)
+            for row in cds.itertuples(index=False, name=None):
+                # row[0] is tx_id
+                tx_cds_dict[row[0]].append(row)
+            self._tx_cds = dict(tx_cds_dict)
+
+            # -----------------------------------------------
+            # gene table (for rename gene and counting genes)
+            gene = gff[gff["type"] == "gene"].copy()
+            gene = gene.loc[:,["id", "chr", "start", "end", "strand"]].rename(columns={"id": "gene_id"}).sort_values(["chr", "start"]).reset_index(drop=True)
+
+            # coding gene list (as default list to extract)
+            genelist = total["gene_id"].drop_duplicates()
+            self.genelist = genelist.to_list()
+
+            self.simp_gff = pd.merge(genelist, gene, on="gene_id")
+
+        console.log(f"Rebuild finished in {time.time() - gff_parse_start:3f} seconds. "
+                    f"coding gene entries: {len(self.genelist)}, all gene entries: {len(set(gene['gene_id']))}, "
+                    f"transcript entries: {tx.shape[0]}, cds entries: {cds.shape[0]}.")
+
+    # ------------------------------------------------------------
+    # Core methods
+    # ------------------------------------------------------------
+    def get_cds(self, tx_id) -> SeqRecord:
+        """
+        Return spliced CDS sequence for transcript tx_id.
+        Handles strand and phase.
+        """
+        if tx_id not in self._tx_cds:
+            raise KeyError(f"Transcript {tx_id} has no CDS features")
+        
+        #           0    1      2    3       4      5
+        # list[(tx_id, chr, start, end, strand, phase), ......]
+        segs = self._tx_cds[tx_id]
+
+        # pre-test
+        chrom, strand = segs[0][1], segs[0][4]
+
+        if segs[0][1] not in self.genome_seq:
+            raise KeyError(f"Chromosome {chrom} not found in fasta")
+        
+        record_seq = self.genome_seq[chrom]
+
+        if record_seq is None:
+            raise KeyError(f"No chromosome sequence for {chrom}")
+
+        # extract start
+        pieces = []
+        for _, _, start, end, _, _ in segs:
+            # GFF is 1-based inclusive; Python is 0-based half-open
+            frag = record_seq[start-1:end].seq  
+            pieces.append(frag)
+
+        cds_seq = Seq("").join(pieces)
+
+        # handle negative strand
+        if strand == "-":
+            cds_seq = cds_seq.reverse_complement()
+
+        cds = SeqRecord(seq=cds_seq, id=tx_id, name=tx_id, description="")
+
+        return cds
+
+    def get_pep(self, tx_id, to_stop=True, strict=False) -> SeqRecord:
+        """
+        Translate CDS to peptide using Biopython.
+        strict=True uses cds=True for strict checks.
+        """
+        cds_seq = self.get_cds(tx_id)
+        return self.translate(cds_seq, to_stop, strict)
+    
+    def translate(self, cds_seq: SeqRecord, to_stop=True, strict=False) -> SeqRecord:
+        # If not divisible by 3, you can choose to trim or not.
+        # Here is a gentle approach: trim tail to multiple of 3 when not strict.
+        if not strict:
+            # Defence for not standard CDS length.
+            trim = len(cds_seq) % 3
+            if trim:
+                cds_seq = cds_seq[:-trim]
+
+        try:
+            pep = cds_seq.translate(to_stop=to_stop, cds=strict)
+            pep.id = cds_seq.id
+            pep.name = cds_seq.name
+            pep.description = ""
+        except Exception as e:
+            raise ValueError(f"Translation failed for {cds_seq.id}: {e}")
+        return pep
+
+    # ------------------------------------------------------------
+    # Longest CDS/Prot per gene
+    # ------------------------------------------------------------
+    def get_longest(self, gene_id, to_stop=True, strict=False):
+        """
+        Return (best_tx_id, best_cds_seq, best_pep_seq)
+        best determined by CDS nucleotide length (after phase trimming/splicing)
+        """
+        if gene_id not in self._gene_txs:
+            raise KeyError(f"Gene {gene_id} has no transcripts")
+
+        best = None
+        for tx_id in self._gene_txs[gene_id]:
+            if tx_id not in self._tx_cds:
+                continue
+            cds = self.get_cds(tx_id)
+            if best is None or len(cds) > len(best[1]):
+                best = (tx_id, cds)
+
+        if best is None:
+            raise ValueError(f"Gene {gene_id} has no CDS")
+
+        tx_id, cds = best
+        pep = self.get_pep(tx_id, to_stop=to_stop, strict=strict)
+        return tx_id, cds, pep
+
+    def iter_longest_pepeins(self, to_stop=True, strict=False):
+        for gene_id in self._gene_txs:
+            try:
+                tx_id, cds, pep = self.get_longest(
+                    gene_id, to_stop=to_stop, strict=strict
+                )
+                yield gene_id, tx_id, pep
+            except Exception:
+                continue
+    
+    def get_cds_pep(
+            self,
+            out_cds_path: Optional[str] = None,
+            out_pep_path: Optional[str] = None,
+            genelist: Optional[Iterable[str]] = None,
+            to_stop: bool = True,
+            strict: bool = False
+            ):
+        console.log("Extract all CDS and Protein sequences.")
+        extract_start = time.time()
+        cds_ls, pep_ls = [], []
+        genelist = self.genelist if genelist is None else genelist
+        for gene_id in track(self.genelist, "Extracting..."):
+            tx_id, cds, pep = self.get_longest(gene_id, to_stop, strict)
+            cds.id, cds.description = gene_id, f"tx_id={tx_id}"
+            pep.id, pep.description = gene_id, f"tx_id={tx_id}"
+            cds_ls.append(cds)
+            pep_ls.append(pep)
+        if (out_cds_path is not None) and (out_pep_path is not None):
+            cds_handle = FastaWriter(out_cds_path, wrap=70)
+            pep_handle = FastaWriter(out_pep_path, wrap=70)
+            cds_handle.write_file(cds_ls)
+            pep_handle.write_file(pep_ls)
+
+        console.log(f"Extract finished in {time.time() - extract_start:3f} seconds. "
+                    f"{len(cds_ls)} CDS sequences, "
+                    f"{len(pep_ls)} Protein sequences exported.")
+        
+        return cds_ls, pep_ls
+
+
+def blast6reader(blast_6_result_path: str) -> pd.DataFrame:
+    res = pd.read_csv(
+        blast_6_result_path, sep="\t", header=None, comment="#",
+        names=["qseqid", "sseqid", "pident", "length", "mismatch", "gapopen",
+               "qstart", "qend", "sstart", "send", "evalue", "bitscore",],
+		dtype={"qseqid": str,
+         	   "sseqid": str,
+               "pident": float,
+               "length": int,
+               "mismatch": int,
+               "gapopen": int,
+               "qstart": int,
+               "qend": int,
+               "sstart": int,
+               "send": int,
+               "evalue": float,
+               "bitscore": float,})
+    res = res.sort_values(["qseqid", "sseqid", "bitscore"], ascending=[True, True, False])
+    return res

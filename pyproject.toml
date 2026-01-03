@@ -26,6 +26,8 @@ addopts = """
 --strict-markers
 --cov=ezwgd
 --cov-report=term-missing
+--cov-branch
+--cov-report=xml
 """
 testpaths = ["tests"]
 

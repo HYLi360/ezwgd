@@ -2,8 +2,7 @@
 Program frontend.
 """
 
-import pandas as pd
-import tempfile
+from typing import Literal
 
 import subprocess
 import os
@@ -31,8 +30,6 @@ def gffread(
                    cwd=workdir)
     os.remove(f'{workdir}/{fna_file_path}.fai')
 
-
-from typing import Literal
 
 class Diamond:
     """

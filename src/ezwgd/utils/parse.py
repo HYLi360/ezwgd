@@ -1,3 +1,8 @@
+from ezwgd._custom import (
+    SeqFileNotFoundError,
+    GFF3FileNotFoundError,
+)
+
 import time
 import pandas as pd
 
@@ -18,18 +23,25 @@ console = Console()
 install(show_locals=True)
 
 class Genome:
-    def __init__(self, gff3_file_path: str, fna_file_path: str) -> None:
+    "write something"
+    def __init__(self, fna_file_path: str, gff3_file_path: str) -> None:
         console.log("Running .fasta file index and gff pre-parse.")
         init_start = time.time()
         with console.status("Initialing..."):
-            self.genome_seq = SeqIO.index(fna_file_path, "fasta")
+            try:
+                self.genome_seq = SeqIO.index(fna_file_path, "fasta")
+            except FileNotFoundError:
+                raise(SeqFileNotFoundError(fna_file_path))
 
             # Read and format original GFF3.
-            gff = pd.read_csv(
-                gff3_file_path, sep="\t", header=None, comment="#",
-                names=["chr", "source", "type", "start", "end", "score", "strand", "phase", "attribute",],
-                dtype={"chr":"str", "type":"str", "start":"int", "end":"int", "strand":"str", "phase":"str", "attribute":"str"}
-            )
+            try:
+                gff = pd.read_csv(
+                    gff3_file_path, sep="\t", header=None, comment="#",
+                    names=["chr", "source", "type", "start", "end", "score", "strand", "phase", "attribute"],
+                    dtype={"chr":"str", "type":"str", "start":"int", "end":"int", "strand":"str", "phase":"str", "attribute":"str"}
+                )
+            except FileNotFoundError:
+                raise(GFF3FileNotFoundError(gff3_file_path))
 
             gff = gff.sort_values(['chr', 'start'])
 
@@ -220,7 +232,8 @@ class Genome:
             out_pep_path: Optional[str] = None,
             genelist: Optional[Iterable[str]] = None,
             to_stop: bool = True,
-            strict: bool = False
+            strict: bool = False,
+            warp: int = 70,
             ):
         console.log("Extract all CDS and Protein sequences.")
         extract_start = time.time()
@@ -228,13 +241,13 @@ class Genome:
         genelist = self.genelist if genelist is None else genelist
         for gene_id in track(self.genelist, "Extracting..."):
             tx_id, cds, pep = self.get_longest(gene_id, to_stop, strict)
-            cds.id, cds.description = gene_id, f"tx_id={tx_id}"
-            pep.id, pep.description = gene_id, f"tx_id={tx_id}"
+            cds.id, cds.name, cds.description = gene_id, gene_id, f"tx_id={tx_id}"
+            pep.id, pep.name, pep.description = gene_id, gene_id, f"tx_id={tx_id}"
             cds_ls.append(cds)
             pep_ls.append(pep)
         if (out_cds_path is not None) and (out_pep_path is not None):
-            cds_handle = FastaWriter(out_cds_path, wrap=70)
-            pep_handle = FastaWriter(out_pep_path, wrap=70)
+            cds_handle = FastaWriter(out_cds_path, wrap=warp)
+            pep_handle = FastaWriter(out_pep_path, wrap=warp)
             cds_handle.write_file(cds_ls)
             pep_handle.write_file(pep_ls)
 

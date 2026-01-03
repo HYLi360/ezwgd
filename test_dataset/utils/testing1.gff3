@@ -1,3 +1,6 @@
+# ==========================================
+# TESTING FILE 1    normal gff3 file
+# ==========================================
 # these are comments
 ## these are comments
 #! these are comments
@@ -22,3 +25,15 @@ seq_frag	BestRefSeq	CDS	372593	372807	.	+	0	ID=cds-NP_001233827.1;Parent=rna-NM_
 seq_frag	BestRefSeq	CDS	372887	373140	.	+	1	ID=cds-NP_001233827.1;Parent=rna-NM_001246898.2;Dbxref=GeneID:100147723,GenBank:NP_001233827.1;Name=NP_001233827.1;gbkey=CDS;gene=GAD3;product=glutamate decarboxylase isoform3;protein_id=NP_001233827.1
 seq_frag	BestRefSeq	CDS	373226	373278	.	+	2	ID=cds-NP_001233827.1;Parent=rna-NM_001246898.2;Dbxref=GeneID:100147723,GenBank:NP_001233827.1;Name=NP_001233827.1;gbkey=CDS;gene=GAD3;product=glutamate decarboxylase isoform3;protein_id=NP_001233827.1
 seq_frag	BestRefSeq	CDS	373356	373802	.	+	0	ID=cds-NP_001233827.1;Parent=rna-NM_001246898.2;Dbxref=GeneID:100147723,GenBank:NP_001233827.1;Name=NP_001233827.1;gbkey=CDS;gene=GAD3;product=glutamate decarboxylase isoform3;protein_id=NP_001233827.1
+seq_frag	Gnomon	gene	381664	384696	.	+	.	ID=gene-LOC101263636;Dbxref=GeneID:101263636;Name=LOC101263636;description=protein XRI1-like;gbkey=Gene;gene=LOC101263636;gene_biotype=protein_coding
+seq_frag	Gnomon	transcript	381664	384696	.	+	.	ID=rna-XM_004228713.5;Parent=gene-LOC101263636;Dbxref=GeneID:101263636,GenBank:XM_004228713.5;Name=XM_004228713.5;experiment=COORDINATES: polyA evidence [ECO:0006239];gbkey=mRNA;gene=LOC101263636;model_evidence=Supporting evidence includes similarity to: 3 Proteins%2C 156 long SRA reads;product=protein XRI1-like;transcript_id=XM_004228713.5
+seq_frag	Gnomon	exon	381664	381918	.	+	.	ID=exon-XM_004228713.5-1;Parent=rna-XM_004228713.5;Dbxref=GeneID:101263636,GenBank:XM_004228713.5;experiment=COORDINATES: polyA evidence [ECO:0006239];gbkey=mRNA;gene=LOC101263636;product=protein XRI1-like;transcript_id=XM_004228713.5
+seq_frag	Gnomon	exon	382377	382537	.	+	.	ID=exon-XM_004228713.5-2;Parent=rna-XM_004228713.5;Dbxref=GeneID:101263636,GenBank:XM_004228713.5;experiment=COORDINATES: polyA evidence [ECO:0006239];gbkey=mRNA;gene=LOC101263636;product=protein XRI1-like;transcript_id=XM_004228713.5
+seq_frag	Gnomon	exon	382629	382713	.	+	.	ID=exon-XM_004228713.5-3;Parent=rna-XM_004228713.5;Dbxref=GeneID:101263636,GenBank:XM_004228713.5;experiment=COORDINATES: polyA evidence [ECO:0006239];gbkey=mRNA;gene=LOC101263636;product=protein XRI1-like;transcript_id=XM_004228713.5
+seq_frag	Gnomon	exon	383233	383367	.	+	.	ID=exon-XM_004228713.5-4;Parent=rna-XM_004228713.5;Dbxref=GeneID:101263636,GenBank:XM_004228713.5;experiment=COORDINATES: polyA evidence [ECO:0006239];gbkey=mRNA;gene=LOC101263636;product=protein XRI1-like;transcript_id=XM_004228713.5
+seq_frag	Gnomon	exon	384139	384696	.	+	.	ID=exon-XM_004228713.5-5;Parent=rna-XM_004228713.5;Dbxref=GeneID:101263636,GenBank:XM_004228713.5;experiment=COORDINATES: polyA evidence [ECO:0006239];gbkey=mRNA;gene=LOC101263636;product=protein XRI1-like;transcript_id=XM_004228713.5
+seq_frag	Gnomon	CDS	381753	381918	.	+	0	ID=cds-XP_004228761.2;Parent=rna-XM_004228713.5;Dbxref=GeneID:101263636,GenBank:XP_004228761.2;Name=XP_004228761.2;gbkey=CDS;gene=LOC101263636;product=protein XRI1-like;protein_id=XP_004228761.2
+seq_frag	Gnomon	CDS	382377	382537	.	+	2	ID=cds-XP_004228761.2;Parent=rna-XM_004228713.5;Dbxref=GeneID:101263636,GenBank:XP_004228761.2;Name=XP_004228761.2;gbkey=CDS;gene=LOC101263636;product=protein XRI1-like;protein_id=XP_004228761.2
+seq_frag	Gnomon	CDS	382629	382713	.	+	0	ID=cds-XP_004228761.2;Parent=rna-XM_004228713.5;Dbxref=GeneID:101263636,GenBank:XP_004228761.2;Name=XP_004228761.2;gbkey=CDS;gene=LOC101263636;product=protein XRI1-like;protein_id=XP_004228761.2
+seq_frag	Gnomon	CDS	383233	383367	.	+	2	ID=cds-XP_004228761.2;Parent=rna-XM_004228713.5;Dbxref=GeneID:101263636,GenBank:XP_004228761.2;Name=XP_004228761.2;gbkey=CDS;gene=LOC101263636;product=protein XRI1-like;protein_id=XP_004228761.2
+seq_frag	Gnomon	CDS	384139	384416	.	+	2	ID=cds-XP_004228761.2;Parent=rna-XM_004228713.5;Dbxref=GeneID:101263636,GenBank:XP_004228761.2;Name=XP_004228761.2;gbkey=CDS;gene=LOC101263636;product=protein XRI1-like;protein_id=XP_004228761.2

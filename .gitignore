@@ -11,7 +11,8 @@ ENV/
 
 .pytest_cache/
 .coverage
-htmlcov/
+htmlcov/*
+site/*
 
 .vscode/
 .idea/

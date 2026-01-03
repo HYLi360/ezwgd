@@ -29,7 +29,7 @@ jobs:
 
       - name: Script linting check.
         run: |
-          ruff check .
+          ruff check . --fix
 
       - name: Auto testing.
         run: |

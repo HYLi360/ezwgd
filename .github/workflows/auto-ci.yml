@@ -38,3 +38,8 @@ jobs:
       - name: Auto generate documents.
         run: |
           mkdocs build
+
+      - name: Upload coverage result to codecov.
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

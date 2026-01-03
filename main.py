@@ -1,4 +1,3 @@
-from Bio.SeqIO import parse
 
 def main():
     pass

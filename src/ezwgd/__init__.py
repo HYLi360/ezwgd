@@ -6,7 +6,7 @@
 """ """
 
 from ._base import version, nickname
-from . import evolution
+from . import evo
 from . import tidy
 from . import utils
 
@@ -14,12 +14,11 @@ from . import utils
 __version__ = f"{version} {nickname}"
 __author__ = "HYLi360"
 
-# white list
 __all__ = [
     "__version__",
     "__author__",
     "version",
-    "evolution",
+    "evo",
     "tidy",
     "utils"
 ]

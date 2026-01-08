@@ -10,9 +10,12 @@ license-files = ["LICEN[CS]E*"]
 requires-python = ">=3.10"
 dependencies = [
     "biopython>=1.86",
+    "matplotlib>=3.10.8",
     "numpy>=2.2.6",
     "pandas>=2.3.3",
+    "pydantic>=2.12.5",
     "rich>=14.2.0",
+    "scipy>=1.15.3",
 ]
 
 [build-system]
@@ -37,7 +40,7 @@ source = ["ezwgd"]
 
 [tool.coverage.report]
 show_missing = true
-fail_under = 60
+fail_under = 85
 exclude_lines = [
     "pragma: no cover",
 ]

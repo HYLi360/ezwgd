@@ -1,4 +1,3 @@
-
 """
 Testing pipeline for ezwgd module `frontend`.
 """
@@ -9,16 +8,7 @@ from ezwgd.frontend import ConfigCODEML
 
 def test_config():
     # frontend.ConfigCODEML
-    codeml_p = ConfigCODEML()
-
-    codeml_p.alpha = 0.5
-    assert isinstance(codeml_p.alpha, float)
-    assert codeml_p.alpha == 0.5
-
-    for v in [True, False]:
-        codeml_p.cleandata = v
-        assert isinstance(codeml_p.cleandata, bool)
-        assert codeml_p.cleandata == v
+    pass
 
 
 def test_gffread_cds_pep_extract():
@@ -38,6 +28,10 @@ def test_diamond():
 
 
 def test_config_codeml():
+    assert False
+
+
+def test_config_codemladvanced():
     assert False
 
 

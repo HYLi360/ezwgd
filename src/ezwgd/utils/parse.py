@@ -18,6 +18,8 @@ from rich.console import Console
 from rich.progress import track
 from rich.traceback import install
 
+from ezwgd.utils import pairwise_re
+
 # Start Rich Engine.
 console = Console()
 install(show_locals=True)
@@ -277,3 +279,17 @@ def blast6reader(blast_6_result_path: str) -> pd.DataFrame:
                "bitscore": float,})
     res = res.sort_values(["qseqid", "sseqid", "bitscore"], ascending=[True, True, False])
     return res
+
+
+def codeml_pairwise(rst_path: str):
+    res_name = ['N', 'S', 'dN', 'dS', 'omega', 't']
+
+    with open(rst_path, encoding="utf-8", errors="replace") as rst:
+        lines = rst.readlines()
+
+    for line in reversed(lines):
+        if pairwise_re.match(line):
+            fields = line.split()
+            values = [float(x) for x in fields[2:8]]  # N S dN dS dN/dS(omega) t
+            return dict(zip(res_name, values))
+    raise ValueError('internal error: falled to parse result of pairwise')

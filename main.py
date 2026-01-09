@@ -1,8 +1,9 @@
-from ezwgd.frontend import ConfigCODEML, ConfigCODEMLAdvanced
+from ezwgd.frontend import ConfigCODEML, CODEML
+import tempfile
 
+with open('codon.aln') as codon:
+    data = "".join(codon.readlines())
 
-
-user_cfg = ConfigCODEML(runmode='usertree', seqtype='codon', model='free-ratios', NSsites='one-omega', noisy='none')
-adv_cfg = ConfigCODEMLAdvanced.escape(user_cfg)
-ctl_text = str(adv_cfg)
-print(ctl_text)
+with tempfile.TemporaryDirectory() as tmpdir:
+    codeml_res = CODEML(verbose=0).preset_dnds(tmpdir, data)
+print(codeml_res)

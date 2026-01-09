@@ -1,7 +1,7 @@
 from ezwgd.frontend import ConfigCODEML, CODEML
 import tempfile
 
-with open('codon.aln') as codon:
+with open('test_dataset/codon.aln') as codon:
     data = "".join(codon.readlines())
 
 with tempfile.TemporaryDirectory() as tmpdir:

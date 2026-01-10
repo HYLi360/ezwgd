@@ -3,6 +3,9 @@ from ezwgd._custom import (
     GFF3FileNotFoundError,
 )
 
+import ezwgd
+from ezwgd.utils import pairwise_re
+
 import time
 import pandas as pd
 
@@ -14,22 +17,14 @@ from Bio.Seq import Seq
 from Bio.SeqIO.FastaIO import FastaWriter
 from Bio.SeqRecord import SeqRecord
 
-from rich.console import Console
 from rich.progress import track
-from rich.traceback import install
-
-from ezwgd.utils import pairwise_re
-
-# Start Rich Engine.
-console = Console()
-install(show_locals=True)
 
 class Genome:
     "write something"
     def __init__(self, fna_file_path: str, gff3_file_path: str) -> None:
-        console.log("Running .fasta file index and gff pre-parse.")
+        ezwgd.console.log("Running .fasta file index and gff pre-parse.")
         init_start = time.time()
-        with console.status("Initialing..."):
+        with ezwgd.console.status("Initialing..."):
             try:
                 self.genome_seq = SeqIO.index(fna_file_path, "fasta")
             except FileNotFoundError:
@@ -55,16 +50,16 @@ class Genome:
             # Save for next step.
             self.gff = gff.reset_index(drop=True)
 
-        console.log(f"Initialization finished in {time.time() - init_start:3f} seconds.")
+        ezwgd.console.log(f"Initialization finished in {time.time() - init_start:3f} seconds.")
 
         self._build_indices()
 
     def _build_indices(self):
-        console.log("Rebuild GFF3 tree structure.")
+        ezwgd.console.log("Rebuild GFF3 tree structure.")
         # Rebuild tree structure (gene->transcript->CDS).
         gff = self.gff
         gff_parse_start = time.time()
-        with console.status("Rebuilding..."):
+        with ezwgd.console.status("Rebuilding..."):
             # -----------------------------------------------
             # CDS table (tx -> CDS)
             cds = gff[gff["type"] == "CDS"].copy()
@@ -119,7 +114,7 @@ class Genome:
 
             self.simp_gff = pd.merge(genelist, gene, on="gene_id")
 
-        console.log(f"Rebuild finished in {time.time() - gff_parse_start:3f} seconds. "
+        ezwgd.console.log(f"Rebuild finished in {time.time() - gff_parse_start:3f} seconds. "
                     f"coding gene entries: {len(self.genelist)}, all gene entries: {len(set(gene['gene_id']))}, "
                     f"transcript entries: {tx.shape[0]}, cds entries: {cds.shape[0]}.")
 
@@ -237,7 +232,7 @@ class Genome:
             strict: bool = False,
             warp: int = 70,
             ):
-        console.log("Extract all CDS and Protein sequences.")
+        ezwgd.console.log("Extract all CDS and Protein sequences.")
         extract_start = time.time()
         cds_ls, pep_ls = [], []
         genelist = self.genelist if genelist is None else genelist
@@ -253,7 +248,7 @@ class Genome:
             cds_handle.write_file(cds_ls)
             pep_handle.write_file(pep_ls)
 
-        console.log(f"Extract finished in {time.time() - extract_start:3f} seconds. "
+        ezwgd.console.log(f"Extract finished in {time.time() - extract_start:3f} seconds. "
                     f"{len(cds_ls)} CDS sequences, "
                     f"{len(pep_ls)} Protein sequences exported.")
         

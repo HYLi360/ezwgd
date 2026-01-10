@@ -1,4 +1,4 @@
-from ezwgd.frontend import ConfigCODEML, CODEML
+from ezwgd.frontend.PAML import CODEML
 import tempfile
 
 with open('test_dataset/codon.aln') as codon:

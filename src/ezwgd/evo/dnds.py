@@ -9,7 +9,8 @@ from Bio import SeqIO
 from Bio.Phylo.PAML import yn00
 from Bio.SeqRecord import SeqRecord
 
-from ..frontend import muscle5, mafft, ConfigYN00, ConfigCODEML, CODEML
+from ezwgd.frontend.PAML import ConfigYN00, ConfigCODEML, CODEML
+from ezwgd.frontend.frontend import muscle5, mafft
 
 # ----------------
 def _codon_align(
@@ -64,7 +65,7 @@ def _codon_align(
 
 # ---Dispatch by algorithm/executable program name (MUSCLE/MAFFT).------------------------------------
 def _alignp(
-        method: Literal["muscle", "mafft"],
+        method: Literal["muscle", "mafft", None],
         workdir: str,
         pep_file_name: str,
         ) -> tuple[SeqRecord, SeqRecord]:
@@ -73,7 +74,7 @@ def _alignp(
             muscle5(workdir, pep_file_name, "align.faa")
         case "mafft":
             mafft(workdir, pep_file_name, "align.faa")
-    return tuple(SeqIO.parse(f"{workdir}/align.faa", "fasta"))
+    return tuple(SeqIO.parse(f"{workdir}/align.faa", "fasta")) #type: ignore
 
 
 # ---calculate by ng86 and yn00.----------------------------------------------------------------------
@@ -109,6 +110,7 @@ def _run_yn00(
 def _calc_yn00_tasks(
         cds: tuple[SeqRecord, SeqRecord],
         prot: tuple[SeqRecord, SeqRecord],
+        align_method: Literal['muscle', 'mafft'],
         config: ConfigYN00,
         ) -> dict:
     # Tasks should focus on executing the task at hand, rather than preparing in advance to handle exceptions.
@@ -116,15 +118,13 @@ def _calc_yn00_tasks(
     with tempfile.TemporaryDirectory(dir="/dev/shm") as tmpdir:
         # Step0: Write records as file.
         SeqIO.write(cds, f"{tmpdir}/cds.fna", "fasta")
-        if config.isaligned:
-            prot_aligned = prot
-        else:
-            # Step1: Protein Alignment (if needed).
-            SeqIO.write(prot, f"{tmpdir}/prot.faa", "fasta")
-            prot_aligned = _alignp(config.align_method, tmpdir, "prot.faa")
+        # Step1: Protein Alignment (if needed).
+        SeqIO.write(prot, f"{tmpdir}/prot.faa", "fasta")
+        prot_aligned = _alignp(align_method, tmpdir, "prot.faa")
 
         # Step2: Codon Alignment.
-        with open(f"{tmpdir}/codon.aln", "w") as codon: codon.write(_codon_align(cds, prot_aligned))
+        with open(f"{tmpdir}/codon.aln", "w") as codon:
+            codon.write(_codon_align(cds, prot_aligned))
 
         # Step3: do yn00.
         result = _run_yn00(config, tmpdir)
@@ -137,7 +137,9 @@ def calc_yn00(
         cds2: str | list[SeqRecord],
         prot1: str | list[SeqRecord],
         prot2: str | list[SeqRecord],
+        align_method: Literal['muscle', 'mafft'],
         config: ConfigYN00 = ConfigYN00(),
+        processes_num: int = 6,
         ):
     """Calculate the dN and dS values between homologous gene pairs by yn00."""
     total_records = []
@@ -146,9 +148,9 @@ def calc_yn00(
 
     cds, prot = list(zip(total_records[0], total_records[1])), list(zip(total_records[2], total_records[3]))
 
-    with Pool(processes=config.processes_number) as pool:
-        args_iterable = ((cds[i], prot[i], config) for i in range(len(total_records[0])))
-        results = pool.starmap(_calc_yn00_tasks, args_iterable, chunksize=ceil(len(cds)/config.processes_number))
+    with Pool(processes=processes_num) as pool:
+        args_iterable = ((cds[i], prot[i], align_method, config) for i in range(len(total_records[0])))
+        results = pool.starmap(_calc_yn00_tasks, args_iterable, chunksize=ceil(len(cds)/processes_num))
         return results
 
 
@@ -156,6 +158,7 @@ def calc_yn00(
 def _calc_codeml_tasks(
         cds: tuple[SeqRecord, SeqRecord],
         prot: tuple[SeqRecord, SeqRecord],
+        align_method: Literal['muscle', 'mafft'],
         config: ConfigCODEML | CODEML = CODEML(),
         ) -> dict:
     config = CODEML.escape(config) if isinstance(config, ConfigCODEML) else config
@@ -165,7 +168,7 @@ def _calc_codeml_tasks(
 
         # Step1: Protein Alignment.
         SeqIO.write(prot, f"{tmpdir}/prot.faa", "fasta")
-        prot_aligned = _alignp('muscle', tmpdir, "prot.faa")
+        prot_aligned = _alignp(align_method, tmpdir, "prot.faa")
 
         # Step2: Codon Alignment.
         codon = _codon_align(cds, prot_aligned)
@@ -178,7 +181,9 @@ def calc_codeml(
         cds2: str | list[SeqRecord],
         prot1: str | list[SeqRecord],
         prot2: str | list[SeqRecord],
+        align_method: Literal['muscle', 'mafft'],
         config: ConfigCODEML | CODEML = CODEML(),
+        processes_num: int = 6
         ):
     """Calculate the dN and dS values between homologous gene pairs by codeml."""
     total_records = []
@@ -187,7 +192,7 @@ def calc_codeml(
 
     cds, prot = list(zip(total_records[0], total_records[1])), list(zip(total_records[2], total_records[3]))
 
-    with Pool(processes=config.processes_number) as pool:
-        args_iterable = ((cds[i], prot[i], config) for i in range(len(total_records[0])))
-        results = pool.starmap(_calc_codeml_tasks, args_iterable, chunksize=ceil(len(cds)/config.processes_number))
+    with Pool(processes=processes_num) as pool:
+        args_iterable = ((cds[i], prot[i], align_method, config) for i in range(len(total_records[0])))
+        results = pool.starmap(_calc_codeml_tasks, args_iterable, chunksize=ceil(len(cds)/processes_num))
         return results

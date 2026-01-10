@@ -4,12 +4,17 @@
 #  See at <https://www.gnu.org/licenses/gpl-3.0.en.html>
 
 """ """
+from rich.console import Console
+from rich.traceback import install
 
-from ._base import version, nickname
-from . import evo
-from . import tidy
-from . import utils
+from ezwgd._base import version, nickname
+from ezwgd import evo
+from ezwgd import tidy
+from ezwgd import utils
 
+# Start Rich Engine.
+console = Console()
+install(show_locals=True)
 
 __version__ = f"{version} {nickname}"
 __author__ = "HYLi360"

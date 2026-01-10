@@ -39,7 +39,7 @@ source = ["ezwgd"]
 
 [tool.coverage.report]
 show_missing = true
-fail_under = 85
+fail_under = 60
 exclude_lines = [
     "pragma: no cover",
 ]

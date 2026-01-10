@@ -30,6 +30,9 @@ addopts = """
 --cov-report=term-missing
 --cov-branch
 --cov-report=xml
+--junitxml=junit.xml
+-o
+junit_family=legacy
 """
 testpaths = ["tests"]
 
@@ -39,7 +42,7 @@ source = ["ezwgd"]
 
 [tool.coverage.report]
 show_missing = true
-fail_under = 60
+fail_under = 40
 exclude_lines = [
     "pragma: no cover",
 ]

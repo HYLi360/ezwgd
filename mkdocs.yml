@@ -1,0 +1,16 @@
+site_name: ezWGD
+site_author: HYLi360
+copyright: None
+theme:
+  name: material
+nav:
+  - "Main": index.md
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google

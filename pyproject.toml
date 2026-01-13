@@ -1,0 +1,48 @@
+[project]
+name = "ezWGD"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "hyli360", email = "lihuanyu2003@gmail.com" }
+]
+license = "GPL-3.0-only"
+license-files = ["LICEN[CS]E*"]
+requires-python = ">=3.10"
+dependencies = [
+    "biopython>=1.86",
+    "matplotlib>=3.10.8",
+    "numpy>=2.2.6",
+    "pandas>=2.3.3",
+    "rich>=14.2.0",
+    "scipy>=1.15.3",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.15,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = """
+-ra
+--strict-markers
+--cov=ezwgd
+--cov-report=term-missing
+--cov-branch
+--cov-report=xml
+--junitxml=junit.xml
+-o
+junit_family=legacy
+"""
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["ezwgd"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 40
+exclude_lines = [
+    "pragma: no cover",
+]

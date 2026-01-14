@@ -27,7 +27,7 @@ COPY . .
 
 # Install dependences.
 RUN uv pip install --system --upgrade pip
-RUN uv pip install -r pyproject.toml
+RUN uv pip install --system -r pyproject.toml
 
 # These are only used in CI, but not included in pyproject.toml
 RUN uv pip install --system ruff pytest pytest-cov mkdocs mkdocs-material mkdocstrings[python] mkdocs-static-i18n

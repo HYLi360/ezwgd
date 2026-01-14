@@ -1,7 +1,7 @@
 [project]
-name = "ezWGD"
+name = "ezwgd"
 version = "0.0.1"
-description = "Add your description here"
+description = "A Easy-to-use bioinformatics toolbox for Whole-genome Compare Analysis, Especially for Whole-genome Duplicate (WGD) Events."
 authors = [
     { name = "hyli360", email = "lihuanyu2003@gmail.com" }
 ]
@@ -18,7 +18,7 @@ dependencies = [
 ]
 
 [[tool.uv.index]]
-name = "ezWGD"
+name = "ezwgd"
 url = "https://test.pypi.org/simple/"
 publish-url = "https://test.pypi.org/legacy/"
 explicit = true

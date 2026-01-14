@@ -17,6 +17,12 @@ dependencies = [
     "scipy>=1.15.3",
 ]
 
+[[tool.uv.index]]
+name = "ezWGD"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
+explicit = true
+
 [build-system]
 requires = ["uv_build>=0.9.15,<0.10.0"]
 build-backend = "uv_build"

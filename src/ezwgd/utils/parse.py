@@ -52,6 +52,8 @@ class Genome:
             gff["id"] = gff["attribute"].str.extract(r"ID=([^;]+)")
             gff["parent"] = gff["attribute"].str.extract(r"Parent=([^;]+)")
 
+            self.chrom: list[str] = gff['chr'].drop_duplicates().tolist()
+
             # Save for next step.
             self.gff = gff.reset_index(drop=True)
 
@@ -314,6 +316,8 @@ class GenomeLight:
             gff = gff[gff["type"].isin(["gene", "mRNA", "transcript", "CDS"])].copy()
             gff["id"] = gff["attribute"].str.extract(r"ID=([^;]+)")
             gff["parent"] = gff["attribute"].str.extract(r"Parent=([^;]+)")
+
+            self.chrom: list[str] = gff['chr'].drop_duplicates().tolist()
 
             # Save for next step.
             self.gff = gff.reset_index(drop=True)

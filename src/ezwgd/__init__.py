@@ -7,10 +7,13 @@
 from rich.console import Console
 from rich.traceback import install
 
+import ezwgd
+
 from ezwgd._base import version, nickname
 from ezwgd import evo
 from ezwgd import tidy
 from ezwgd import utils
+from ezwgd import coll
 
 # Start Rich Engine.
 console = Console()
@@ -23,7 +26,9 @@ __all__ = [
     "__version__",
     "__author__",
     "version",
+    "ezwgd",
     "evo",
     "tidy",
-    "utils"
+    "utils",
+    "coll"
 ]

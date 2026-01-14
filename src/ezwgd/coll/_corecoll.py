@@ -21,14 +21,12 @@ class PowerColl:
     def __init__(
             self,
             blast_res: pd.DataFrame,
-            genome : Genome | GenomeLight) -> None:
+            genome1 : Genome | GenomeLight,
+            genome2 : Genome | GenomeLight,
+            ) -> None:
         self.blast_res = blast_res
-        self.genome = genome
-
-    def _pre_process(self):
-        # Processing blast result. 
-        # qseqid, sseqid, pident, length, mismatch, gapopen, qstart, qend, sstart, send, evalue, bitscore
-        self.blast_res = self.blast_res.loc[:,['qseqid', 'sseqid', 'evalue', 'bitscore']]
-        self.gff_simp = self.genome.simp_gff
-        self.result = {}
-        
+        self.genome1 = genome1
+        self.genome2 = genome2
+    def chunking(self):
+        """Chunk the blast6 result to prepare parallel processes."""
+        blast_res = self.blast_res.loc[:,["qseqid", "sseqid", "evalue", "bitscore",]]

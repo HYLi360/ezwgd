@@ -29,4 +29,4 @@ class PowerColl:
         self.genome2 = genome2
     def chunking(self):
         """Chunk the blast6 result to prepare parallel processes."""
-        blast_res = self.blast_res.loc[:,["qseqid", "sseqid", "evalue", "bitscore",]]
+ 

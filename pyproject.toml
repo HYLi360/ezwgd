@@ -1,6 +1,6 @@
 [project]
 name = "ezwgd"
-version = "0.0.1"
+version = "0.1.0"
 description = "A Easy-to-use bioinformatics toolbox for Whole-genome Compare Analysis, Especially for Whole-genome Duplicate (WGD) Events."
 authors = [
     { name = "hyli360", email = "lihuanyu2003@gmail.com" }

@@ -1,6 +1,6 @@
 [project]
 name = "ezWGD"
-version = "0.1.0"
+version = "0.0.1"
 description = "Add your description here"
 authors = [
     { name = "hyli360", email = "lihuanyu2003@gmail.com" }

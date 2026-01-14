@@ -20,14 +20,15 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 # Setup workdir.
 WORKDIR /app
 
-# Copy need file(s)
-COPY pyproject.toml .
+# Copy all file(s)
+COPY . .
 # Copy uv.lock or requirements.txt if you have
 # COPY uv.lock .
 
 # Install dependences.
 RUN uv pip install --system --upgrade pip
-RUN uv pip install --system ".[test,doc]"
+RUN uv pip install --system "."
+
 # These are only used in CI, but not included in pyproject.toml
 RUN uv pip install --system ruff pytest pytest-cov mkdocs mkdocs-material mkdocstrings[python] mkdocs-static-i18n
 

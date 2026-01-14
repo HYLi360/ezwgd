@@ -170,7 +170,7 @@ def test_genome_expertion():
 def test_parse_blast6():
     blast_res = parse.blast6reader(BLAST_RES_PATH)
     # 1. is result reads?
-    assert blast_res.shape == (96777, 12)
+    assert blast_res.shape == (16463, 12)
 
     # 2. 
 

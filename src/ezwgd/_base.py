@@ -1,5 +1,5 @@
 """"""
 
 
-version = "0.1.0"
-nickname = "Aegis"
+version = "0.0.1"
+nickname = "TESTING"
